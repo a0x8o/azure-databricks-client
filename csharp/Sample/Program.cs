@@ -250,14 +250,19 @@ namespace Sample
             var poolAttributes = new InstancePoolAttributes
             {
                 PoolName = "TestInstancePool",
-                PreloadedSparkVersions = new[] {RuntimeVersions.Runtime_6_4},
+                PreloadedSparkVersions = new[] {RuntimeVersions.Runtime_6_4_ESR},
                 MinIdleInstances = 2,
                 MaxCapacity = 100,
                 IdleInstanceAutoTerminationMinutes = 15,
                 NodeTypeId = NodeTypes.Standard_D3_v2,
                 EnableElasticDisk = true,
                 DiskSpec = new DiskSpec
-                    {DiskCount = 2, DiskSize = 64, DiskType = DiskType.FromAzureDisk(AzureDiskVolumeType.STANDARD_LRS)}
+                    {DiskCount = 2, DiskSize = 64, DiskType = DiskType.FromAzureDisk(AzureDiskVolumeType.STANDARD_LRS)},
+                PreloadedDockerImages = new[]
+                {
+                    new DockerImage {Url = "databricksruntime/standard:latest"}
+                },
+                AzureAttributes = new InstancePoolAzureAttributes {Availability = AzureAvailability.SPOT_AZURE, SpotBidMaxPrice = -1}
             };
 
             var poolId = await client.InstancePool.Create(poolAttributes).ConfigureAwait(false);
@@ -309,7 +314,7 @@ namespace Sample
             {
                 Console.WriteLine($"\t{nodeType.NodeTypeId}\tMemory: {nodeType.MemoryMb} MB\tCores: {nodeType.NumCores}\tAvailable Quota: {nodeType.ClusterCloudProviderNodeInfo.AvailableCoreQuota}");
             }
-
+            
             Console.WriteLine("Listing Databricks runtime versions");
             var sparkVersions = await client.Clusters.ListSparkVersions();
             foreach (var (key, name) in sparkVersions)
@@ -320,15 +325,14 @@ namespace Sample
             Console.WriteLine("Creating standard cluster");
 
             var clusterConfig = ClusterInfo.GetNewClusterConfiguration("Sample cluster")
-                .WithRuntimeVersion(RuntimeVersions.Runtime_6_4)
-                .WithAutoScale(3, 7)
+                .WithRuntimeVersion(RuntimeVersions.Runtime_6_4_ESR)
                 .WithAutoTermination(30)
                 .WithClusterLogConf("dbfs:/logs/")
                 .WithNodeType(NodeTypes.Standard_D3_v2)
-                .WithPython3(true);
+                .WithClusterMode(ClusterMode.SingleNode);
 
             clusterConfig.DockerImage = new DockerImage { Url = "databricksruntime/standard:latest" };
-            
+
             var clusterId = await client.Clusters.Create(clusterConfig);
 
             var createdCluster = await client.Clusters.Get(clusterId);
@@ -358,12 +362,11 @@ namespace Sample
             Console.WriteLine("Creating HighConcurrency cluster");
 
             clusterConfig = ClusterInfo.GetNewClusterConfiguration("Sample cluster")
-                .WithRuntimeVersion(RuntimeVersions.Runtime_6_4)
+                .WithRuntimeVersion(RuntimeVersions.Runtime_6_4_ESR)
                 .WithAutoScale(3, 7)
                 .WithAutoTermination(30)
                 .WithClusterLogConf("dbfs:/logs/")
                 .WithNodeType(NodeTypes.Standard_D3_v2)
-                .WithPython3(true)
                 .WithClusterMode(ClusterMode.HighConcurrency)
                 .WithTableAccessControl(true);
 
@@ -466,9 +469,8 @@ namespace Sample
             Console.WriteLine("Creating new job");
             var newCluster = ClusterInfo.GetNewClusterConfiguration()
                 .WithNumberOfWorkers(3)
-                .WithPython3(true)
                 .WithNodeType(NodeTypes.Standard_D3_v2)
-                .WithRuntimeVersion(RuntimeVersions.Runtime_6_4);
+                .WithRuntimeVersion(RuntimeVersions.Runtime_6_4_ESR);
 
             Console.WriteLine($"Creating workspace {SampleWorkspacePath}");
             await client.Workspace.Mkdirs(SampleWorkspacePath);
