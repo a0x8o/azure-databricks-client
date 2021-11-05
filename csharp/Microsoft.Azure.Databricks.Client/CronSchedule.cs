@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System.ComponentModel;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace Microsoft.Azure.Databricks.Client
 {
@@ -15,5 +17,29 @@ namespace Microsoft.Azure.Databricks.Client
         /// </summary>
         [JsonProperty(PropertyName = "timezone_id")]
         public string TimezoneId { get; set; }
+
+        /// <summary>
+        /// Indicate whether this schedule is paused or not.
+        /// </summary>
+        [DefaultValue(PauseStatus.UNPAUSED)]
+        [JsonProperty(PropertyName = "pause_status")]
+        [JsonConverter(typeof(StringEnumConverter))]
+        public PauseStatus PauseStatus { get; set; }
+    }
+
+    /// <summary>
+    /// The paused status for a cron schedule
+    /// </summary>
+    public enum PauseStatus
+    {
+        /// <summary>
+        /// Set when the cron schedule is paused
+        /// </summary>
+        PAUSED,
+        
+        /// <summary>
+        /// Set when the cron schedule is not paused
+        /// </summary>
+        UNPAUSED
     }
 }
