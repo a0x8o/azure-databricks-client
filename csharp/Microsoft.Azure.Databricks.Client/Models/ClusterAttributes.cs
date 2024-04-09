@@ -28,6 +28,12 @@ public enum ClusterMode
 public record ClusterAttributes : ClusterSize
 {
     /// <summary>
+    /// A label for the cluster specification, either default to configure the default cluster, or maintenance to configure the maintenance cluster. This field is optional. The default value is default.
+    /// </summary>
+    [JsonPropertyName("label")]
+    public string Label { get; set; }
+
+    /// <summary>
     /// Cluster name requested by the user. This doesn’t have to be unique. If not specified at creation, the cluster name will be an empty string.
     /// </summary>
     [JsonPropertyName("cluster_name")]
@@ -100,13 +106,13 @@ public record ClusterAttributes : ClusterSize
     /// Automatically terminates the cluster after it is inactive for this time in minutes. If not set, this cluster will not be automatically terminated. If specified, the threshold must be between 10 and 10000 minutes. Users can also set this value to 0 to explicitly disable automatic termination.
     /// </summary>
     [JsonPropertyName("autotermination_minutes")]
-    public int AutoTerminationMinutes { get; set; }
+    public int? AutoTerminationMinutes { get; set; }
 
     /// <summary>
     /// Autoscaling Local Storage: when enabled, this cluster will dynamically acquire additional disk space when its Spark workers are running low on disk space.
     /// </summary>
     [JsonPropertyName("enable_elastic_disk")]
-    public bool EnableElasticDisk { get; set; }
+    public bool? EnableElasticDisk { get; set; }
 
     /// <summary>
     /// The optional ID of the instance pool to which the cluster belongs. Refer to Pools for details.
@@ -130,7 +136,7 @@ public record ClusterAttributes : ClusterSize
     /// When enabled, local disk data will be encrypted at-rest. Contact your Microsoft or Databricks account representative to enable for your subscription.
     /// </summary>
     [JsonPropertyName("enable_local_disk_encryption")]
-    public bool LocalDiskEncryption { get; set; }
+    public bool? LocalDiskEncryption { get; set; }
 
     /// <summary>
     /// A cluster policy ID.
@@ -156,7 +162,7 @@ public record ClusterAttributes : ClusterSize
     /// * STANDARD: Use the standard runtime engine type.
     /// </summary>
     [JsonPropertyName("runtime_engine")]
-    public RuntimeEngine RuntimeEngine { get; set; }
+    public RuntimeEngine? RuntimeEngine { get; set; }
 
     /// <summary>
     /// Specifies the single user's AAD user name, who is allowed to run commands on this cluster when Credential Passthrough is enabled.

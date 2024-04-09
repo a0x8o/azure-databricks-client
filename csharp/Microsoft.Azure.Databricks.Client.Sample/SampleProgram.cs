@@ -20,7 +20,9 @@ internal static partial class SampleProgram
             new MillisecondEpochDateTimeConverter(),
             new LibraryConverter(),
             new SecretScopeConverter(),
-            new AclPermissionItemConverter()
+            new AclPermissionItemConverter(),
+            new DepedencyConverter(),
+            new TableConstraintConverter(),
         }
     };
 
@@ -45,18 +47,22 @@ internal static partial class SampleProgram
         Console.WriteLine("Creating client");
         using (var client = DatabricksClient.CreateClient(baseUrl, token))
         {
-            await TestGlobalInitScriptsApi(client);
-            await TestClusterPoliciesApi(client);
-            await TestWorkspaceApi(client);
-            await TestLibrariesApi(client);
-            await TestSecretsApi(client);
-            await TestTokenApi(client);
-            await TestInstancePoolApi(client);
-            await TestClustersApi(client);
-            await TestGroupsApi(client);
-            await TestDbfsApi(client);
-            await TestJobsApi(client);
-            await TestPermissionsApi(client);
+            //await TestGlobalInitScriptsApi(client);
+            //await TestClusterPoliciesApi(client);
+            //await TestWorkspaceApi(client);
+            //await TestLibrariesApi(client);
+            //await TestSecretsApi(client);
+            //await TestTokenApi(client);
+            //await TestInstancePoolApi(client);
+            //await TestClustersApi(client);
+            //await TestGroupsApi(client);
+            //await TestDbfsApi(client);
+            //await TestJobsApi(client);
+            //await TestPermissionsApi(client);
+            //await TestWarehouseApi(client);
+            //await TestReposApi(client);
+            //await TestPipelineApi(client);
+            await TestUnityCatalogApi(client);
         }
 
         Console.WriteLine("Press enter to exit");
@@ -67,7 +73,7 @@ internal static partial class SampleProgram
     {
         using var httpClient = new HttpClient();
         var content = await httpClient.GetByteArrayAsync(
-            "https://docs.databricks.com/_static/notebooks/getting-started/quickstartusingscala.html"
+            "https://docs.databricks.com/_extras/notebooks/source/mlflow/mlflow-quick-start-scala.html"
         );
 
         return content;

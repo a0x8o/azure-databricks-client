@@ -10,6 +10,18 @@
             - Added support for configuring the HttpClient object used by DatabricksClient.
             - Added unit tests.
         </PackageReleaseNotes>
+        <PackageReleaseNotes Condition="'$(VersionPrefix)' == '2.1.0'">
+            - Add support for create Azure Key Vault backed secret scope.
+            - Add support for changing cluster owner.
+            - Add support for listing and getting policy family
+            - Add support for creating and editing cluster policy with policy family.
+        </PackageReleaseNotes>
+        <PackageReleaseNotes Condition="'$(VersionPrefix)' == '2.3.0'">
+            - Add support for Pipelines (Delta Live Tables) API.
+            - Add support for webhook and email notification to JobApi.RunSubmit
+            - Add support for job_parameters during job run
+            - Add support for Unity Catalog API.
+        </PackageReleaseNotes>
         <PackageReleaseNotes>
         Changes in $(VersionPrefix): $(PackageReleaseNotes)
         </PackageReleaseNotes>

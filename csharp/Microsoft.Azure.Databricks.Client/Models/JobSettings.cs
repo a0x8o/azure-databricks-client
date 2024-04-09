@@ -16,6 +16,18 @@ public abstract record JobRunBaseSettings<TTaskSetting> : IJsonOnDeserialized
     [JsonPropertyName("tasks")]
     public List<TTaskSetting> Tasks { get; set; } = new();
 
+    /// <summary>
+    /// An optional set of email addresses that will be notified when runs of this job begin or complete as well as when this job is deleted. The default behavior is to not send any emails.
+    /// </summary>
+    [JsonPropertyName("email_notifications")]
+    public JobEmailNotifications EmailNotifications { get; set; }
+
+    /// <summary>
+    /// An optional set of webhook addresses that will be notified when runs of this job begin or complete as well as when this job is deleted. The default behavior is to not send any webhook notifications.
+    /// </summary>
+    [JsonPropertyName("webhook_notifications")]
+    public JobWebhookNotifications WebhookNotifications { get; set; }
+
     public void OnDeserialized()
     {
         var taskMap = this.Tasks.ToDictionary(
@@ -186,18 +198,6 @@ public record JobSettings : JobRunBaseSettings<JobTaskSettings>
     public IEnumerable<JobCluster> JobClusters { get; set; }
 
     /// <summary>
-    /// An optional set of email addresses that will be notified when runs of this job begin or complete as well as when this job is deleted. The default behavior is to not send any emails.
-    /// </summary>
-    [JsonPropertyName("email_notifications")]
-    public JobEmailNotifications EmailNotifications { get; set; }
-
-    /// <summary>
-    /// An optional set of webhook addreses that will be notified when runs of this job begin or complete as well as when this job is deleted. The default behavior is to not send any webhook notifications.
-    /// </summary>
-    [JsonPropertyName("webhook_notifications")]
-    public JobWebhookNotifications WebhookNotifications { get; set; }
-
-    /// <summary>
     /// An optional periodic schedule for this job. The default behavior is that the job only runs when triggered by clicking "Run Now" in the Jobs UI or sending an API request to `runNow`.
     /// </summary>
     [JsonPropertyName("schedule")]
@@ -217,6 +217,12 @@ public record JobSettings : JobRunBaseSettings<JobTaskSettings>
     /// </summary>
     [JsonPropertyName("format")]
     public JobFormat Format { get; set; }
+
+    /// <summary>
+    /// Write-only setting, available only in Create/Update/Reset and Submit calls. Specifies the user or service principal that the job runs as. If not specified, the job runs as the user who created the job.
+    /// </summary>
+    [JsonPropertyName("run_as")]
+    public RunAs RunAs { get; set; }
 }
 
 /// <summary>

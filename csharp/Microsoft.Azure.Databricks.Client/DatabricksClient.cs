@@ -28,6 +28,10 @@ public class DatabricksClient : IDisposable
         this.Permissions = new PermissionsApiClient(httpClient);
         this.ClusterPolicies = new ClusterPoliciesApiClient(httpClient);
         this.GlobalInitScriptsApi = new GlobalInitScriptsApi(httpClient);
+        this.SQL = new SQLApiClient(httpClient);
+        this.Repos = new ReposApiClient(httpClient);
+        this.Pipelines = new PipelinesApiClient(httpClient);
+        this.UnityCatalog = new UnityCatalogClient(httpClient);
     }
 
     /// <summary>
@@ -158,6 +162,14 @@ public class DatabricksClient : IDisposable
 
     public IGlobalInitScriptsApi GlobalInitScriptsApi { get; }
 
+    public ISQLApi SQL { get; }
+
+    public IReposApi Repos { get; }
+
+    public IPipelinesApi Pipelines { get; }
+
+    public UnityCatalogClient UnityCatalog { get; }
+
     public void Dispose()
     {
         Clusters.Dispose();
@@ -171,6 +183,9 @@ public class DatabricksClient : IDisposable
         InstancePool.Dispose();
         ClusterPolicies.Dispose();
         GlobalInitScriptsApi.Dispose();
+        Repos.Dispose();
+        Pipelines.Dispose();
+        UnityCatalog.Dispose();
         GC.SuppressFinalize(this);
     }
 }

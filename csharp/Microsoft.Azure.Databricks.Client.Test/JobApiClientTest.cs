@@ -208,6 +208,17 @@ public class JobApiClientTest : ApiClientTest
                         ""timeout_seconds"": 86400
                     }
                 ],
+                ""email_notifications"": {
+                    ""on_start"": [""user.name@databricks.com""],
+                    ""on_success"": [""user.name@databricks.com""],
+                    ""on_failure"": [""user.name@databricks.com""],
+                    ""no_alert_for_skipped_runs"": false
+                },
+                ""webhook_notifications"": {
+                    ""on_start"": [{""id"":""1234567""}],
+                    ""on_success"": [{""id"":""1234567""}],
+                    ""on_failure"": [{""id"":""1234567""}]
+                },
                 ""timeout_seconds"": 86400,
                 ""git_source"": null,
                 ""idempotency_token"": ""8f018174-4792-40d5-bcbc-3e6a527352c8"",
@@ -252,7 +263,20 @@ public class JobApiClientTest : ApiClientTest
         var runSubmit = new RunSubmitSettings
         {
             RunName = "A multitask job run",
-            TimeoutSeconds = 86400
+            TimeoutSeconds = 86400,
+            EmailNotifications = new JobEmailNotifications
+            {
+                NoAlertForSkippedRuns = false,
+                OnStart = new[] { "user.name@databricks.com" },
+                OnFailure = new[] { "user.name@databricks.com" },
+                OnSuccess = new[] { "user.name@databricks.com" }
+            },
+            WebhookNotifications = new JobWebhookNotifications
+            {
+                OnStart = new[] { new JobWebhookSetting() { Id = "1234567" } },
+                OnFailure = new[] { new JobWebhookSetting() { Id = "1234567" } },
+                OnSuccess = new[] { new JobWebhookSetting() { Id = "1234567" } },
+            }
         };
 
         var sessionizeTask = new SparkJarTask
@@ -619,6 +643,10 @@ public class JobApiClientTest : ApiClientTest
               ""python_named_params"": {
                 ""name"": ""task"",
                 ""data"": ""dbfs:/path/to/data.json""
+              },
+              ""job_parameters"": {
+                ""name"": ""job"",
+                ""data"": ""dbfs:/path/to/job/data.json""
               }
             }
         ";
@@ -636,7 +664,8 @@ public class JobApiClientTest : ApiClientTest
             NotebookParams = new Dictionary<string, string> { { "name", "john doe" }, { "age", "35" } },
             PythonParams = new List<string> { "john doe", "35" },
             SparkSubmitParams = new List<string> { "--class", "org.apache.spark.examples.SparkPi" },
-            PythonNamedParams = new Dictionary<string, string> { { "name", "task" }, { "data", "dbfs:/path/to/data.json" } }
+            PythonNamedParams = new Dictionary<string, string> { { "name", "task" }, { "data", "dbfs:/path/to/data.json" } },
+            JobParams = new Dictionary<string, string> { { "name", "job" }, { "data", "dbfs:/path/to/job/data.json" } }
         };
 
         var handler = CreateMockHandler();
@@ -930,12 +959,13 @@ public class JobApiClientTest : ApiClientTest
     }
 
     [TestMethod]
-    public async Task TestRunsList()
+    [Obsolete]
+    public async Task TestRunsListWithOffSet()
     {
         var apiUri = new Uri(JobsApiUri, "runs/list");
 
         var expectedRequestUrl = new Uri(apiUri,
-            "?limit=25&offset=0&job_id=11223344&active_only=true&run_type=JOB_RUN&start_time_from=1642521600000&start_time_to=1642608000000");
+            "?limit=25&job_id=11223344&active_only=true&run_type=JOB_RUN&start_time_from=1642521600000&start_time_to=1642608000000&offset=0");
         const string response = @"
             {
                 ""runs"":[],
@@ -961,6 +991,50 @@ public class JobApiClientTest : ApiClientTest
 
         Assert.IsTrue(runsList.Runs.IsNullOrEmpty());
         Assert.IsFalse(runsList.HasMore);
+
+        handler.VerifyRequest(
+            HttpMethod.Get,
+            expectedRequestUrl,
+            Times.Once()
+        );
+    }
+
+    [TestMethod]
+    public async Task TestRunsListWithToken()
+    {
+        var apiUri = new Uri(JobsApiUri, "runs/list");
+
+        var expectedRequestUrl = new Uri(apiUri,
+            "?limit=25&job_id=11223344&active_only=true&run_type=JOB_RUN&start_time_from=1642521600000&start_time_to=1642608000000&page_token=abc");
+        const string response = @"
+            {
+                ""runs"":[],
+                ""has_more"": false,
+                ""next_page_token"": ""def"",
+                ""prev_page_token"": ""xyz""
+            }
+        ";
+        var handler = CreateMockHandler();
+        handler
+            .SetupRequest(HttpMethod.Get, expectedRequestUrl)
+            .ReturnsResponse(HttpStatusCode.OK, response, "application/json")
+            .Verifiable();
+
+        var hc = handler.CreateClient();
+        hc.BaseAddress = BaseApiUri;
+
+        using var client = new JobsApiClient(hc);
+        var runsList = await client.RunsList(
+            jobId: 11223344, pageToken: "abc", limit: 25, activeOnly: true, completedOnly: false, runType: RunType.JOB_RUN,
+            expandTasks: false,
+            startTimeFrom: DateTimeOffset.FromUnixTimeMilliseconds(1642521600000),
+            startTimeTo: DateTimeOffset.FromUnixTimeMilliseconds(1642608000000)
+        );
+
+        Assert.IsTrue(runsList.Runs.IsNullOrEmpty());
+        Assert.IsFalse(runsList.HasMore);
+        Assert.AreEqual("def", runsList.NextPageToken);
+        Assert.AreEqual("xyz", runsList.PrevPageToken);
 
         handler.VerifyRequest(
             HttpMethod.Get,

@@ -37,26 +37,21 @@ public class SecretsApiClient : ApiClient, ISecretsApi
         await HttpPost(this.HttpClient, $"{ApiVersion}/secrets/scopes/create", request, cancellationToken).ConfigureAwait(false);
     }
 
-    /*
-     This API call is currently not working per https://github.com/MicrosoftDocs/azure-docs/issues/65000. Comment out for now.
-    public async Task CreateAkvBackedScope(string scope, string initialManagePrincipal, string akvResourceId, string akvDnsName,
+    public async Task CreateAzureKeyVaultBackedScope(string scope, string azureKeyVaultDnsName, string azureKeyVaultResourceId,
         CancellationToken cancellationToken = default)
     {
         var request = new
         {
             scope,
-            initial_manage_principal = initialManagePrincipal,
             scope_backend_type = "AZURE_KEYVAULT",
             backend_azure_keyvault = new
             {
-                resource_id = akvResourceId,
-                dns_name = akvDnsName
+                dns_name = azureKeyVaultDnsName,
+                resource_id = azureKeyVaultResourceId
             }
         };
-
         await HttpPost(this.HttpClient, $"{ApiVersion}/secrets/scopes/create", request, cancellationToken).ConfigureAwait(false);
     }
-    */
 
     public async Task DeleteScope(string scope, CancellationToken cancellationToken = default)
     {
